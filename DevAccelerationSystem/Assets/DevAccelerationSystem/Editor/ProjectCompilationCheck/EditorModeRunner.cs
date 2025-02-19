@@ -112,6 +112,23 @@ namespace DevAccelerationSystem.ProjectCompilationCheck
                     compilationResults.Add(output);
                     continue;
                 }
+
+                var buildTargetGroup = compilationConfig.Target.ConvertToBuildTargetGroup();
+                var oldDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+                editorLogger.Info($"Default defines: {oldDefines}.");
+                if (compilationConfig.ExcessScriptingDefines is { Length: > 0 })
+                {
+                    var newDefines = oldDefines;
+                    editorLogger.Info($"Remove excess defines from settings - {string.Join(";", compilationConfig.ExcessScriptingDefines)}.");
+                    foreach (var excessDefine in compilationConfig.ExcessScriptingDefines)
+                    {
+                        newDefines = newDefines.Replace(excessDefine, string.Empty);
+                    }
+                    
+                    newDefines = newDefines.Replace(";;", ";").Trim(';', ' ');
+                    editorLogger.Info($"Final default defines: {newDefines}.");
+                    PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, newDefines);
+                }
                 
                 var st = new Stopwatch();
                 st.Start();
@@ -137,6 +154,9 @@ namespace DevAccelerationSystem.ProjectCompilationCheck
                 output.UnityCompilationResult = PlayerBuildInterface.CompilePlayerScripts(compilationConfig, filePath);
                 CompilationPipeline.assemblyCompilationFinished -= CompilationFinished;
                     
+                
+                editorLogger.Info($"Return old defines: {oldDefines}.");
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, oldDefines);
                 st.Stop();
                 output.CompilationStats = new CompilationStats{ Name= compilationConfig.Name, CompilationTotalMs = st.ElapsedMilliseconds};
 
