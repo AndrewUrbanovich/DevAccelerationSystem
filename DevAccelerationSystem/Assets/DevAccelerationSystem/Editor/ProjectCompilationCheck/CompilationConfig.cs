@@ -22,6 +22,9 @@ namespace DevAccelerationSystem.ProjectCompilationCheck
         
         [Tooltip("Your custom scripting defines for the config.")]
         public string[] ExtraScriptingDefines;
+        
+        [Tooltip("Your custom scripting defines for the config which would be removed.")]
+        public string[] ExcessScriptingDefines;
 
         public override string ToString()
         {
